@@ -1,0 +1,16 @@
+apiVersion: 1
+
+datasources:
+  - name: MiniNetflix-Postgres
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: mininetflix
+    user: postgres
+    secureJsonData:
+      password: postgres
+    jsonData:
+      sslmode: "disable"
+      postgresVersion: 1600
+      timescaledb: false
+    isDefault: true

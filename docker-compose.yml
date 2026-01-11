@@ -1,0 +1,72 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: mn_postgres
+    env_file: .env
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mininetflix"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: mn_grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: mn_namenode
+    environment:
+      - CLUSTER_NAME=mininetflix
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    ports:
+      - "9870:9870"   # HDFS Web UI
+      - "8020:8020"
+    volumes:
+      - ./data:/opt/data
+      - namenode:/hadoop/dfs/name
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: mn_datanode
+    depends_on:
+      - namenode
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    ports:
+      - "9864:9864"
+    volumes:
+      - ./data:/opt/data
+      - datanode:/hadoop/dfs/data
+
+  spark:
+    image: apache/spark:3.5.0
+    container_name: mn_spark
+    depends_on:
+      postgres:
+        condition: service_healthy
+      namenode:
+        condition: service_started
+    environment:
+      - SPARK_LOCAL_IP=spark
+    volumes:
+      - ./spark:/opt/spark-apps
+      - ./data:/opt/data
+    working_dir: /opt/spark-apps
+    command: ["bash", "-lc", "sleep infinity"]
+
+volumes:
+  namenode:
+  datanode:

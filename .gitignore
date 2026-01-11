@@ -1,0 +1,11 @@
+/data/
+/spark/
+/db/
+/api/__pycache__/
+/frontend/react-vite/node_modules/
+/frontend/react-vite/dist/
+.env
+*.csv
+*.parquet
+*.zip
+*.lock

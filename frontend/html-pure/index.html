@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Mini Netflix - Recommandations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 18px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            animation: shake 0.5s ease;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .results-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .results-header h2 {
+            margin-bottom: 5px;
+        }
+
+        .results-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background: #667eea;
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .rank {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .score {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .movie-id {
+            color: #666;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Mini Netflix</h1>
+        <p class="subtitle">Système de recommandations BigData (ALS + Spark)</p>
+
+        <div class="form-section">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <label for="userId">👤 User ID</label>
+                    <input type="number" id="userId" placeholder="Ex: 123" min="1">
+                </div>
+                <div class="input-wrapper">
+                    <label for="numRecos">🎯 Nombre de recommandations</label>
+                    <input type="number" id="numRecos" value="10" min="1" max="100">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="getRecommendations()">
+                    🔍 Get Recommendations
+                </button>
+                <button class="btn-secondary" onclick="getRandomRecommendations()">
+                    🎲 Random User
+                </button>
+            </div>
+        </div>
+
+        <div class="error" id="error"></div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Chargement des recommandations...</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="results-header">
+                <h2>📊 Recommandations</h2>
+                <p id="resultsInfo"></p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>🎬 Titre du Film</th>
+                        <th>🆔 Movie ID</th>
+                        <th>⭐ Score</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('error').classList.remove('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = '❌ Erreur: ' + message;
+            errorDiv.classList.add('show');
+            hideLoading();
+        }
+
+        function showResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const resultsInfo = document.getElementById('resultsInfo');
+            const resultsBody = document.getElementById('resultsBody');
+
+            resultsInfo.textContent = `User ID: ${data.user_id} | ${data.results.length} recommandation(s)`;
+            
+            resultsBody.innerHTML = '';
+            
+            data.results.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="rank">${index + 1}</span></td>
+                    <td><strong>${item.title}</strong></td>
+                    <td><span class="movie-id">${item.movie_id}</span></td>
+                    <td><span class="score">${item.score.toFixed(4)}</span></td>
+                `;
+                resultsBody.appendChild(row);
+            });
+
+            hideLoading();
+            resultsDiv.classList.add('show');
+        }
+
+        async function getRecommendations() {
+            const userId = document.getElementById('userId').value;
+            const n = document.getElementById('numRecos').value;
+
+            if (!userId) {
+                showError('Veuillez entrer un User ID');
+                return;
+            }
+
+            if (!n || n < 1) {
+                showError('Le nombre de recommandations doit être au moins 1');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const response = await fetch(`${API_URL}/reco/${userId}?n=${n}`);
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Erreur serveur');
+                }
+
+                const data = await response.json();
+                showResults(data);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function getRandomRecommendations() {
+            const n = document.getElementById('numRecos').value;
+
+            if (!n || n < 1) {
+                showError('Le nombre de recommandations doit être au moins 1');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const response = await fetch(`${API_URL}/reco/random?n=${n}`);
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Erreur serveur');
+                }
+
+                const data = await response.json();
+                document.getElementById('userId').value = data.user_id;
+                showResults(data);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Permettre la soumission avec Enter
+        document.getElementById('userId').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') getRecommendations();
+        });
+
+        document.getElementById('numRecos').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') getRecommendations();
+        });
+    </script>
+</body>
+</html>
