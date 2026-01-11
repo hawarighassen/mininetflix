@@ -348,4 +348,4 @@ Tu as maintenant un **système complet de recommandations** :
 
 **Auteur** : Mini Netflix BigData Project  
 **Date** : Janvier 2026  
-**Niveau** : LBI 1ère année (adapté débutants)
+
